@@ -5,7 +5,10 @@
 #include "iodevice.h"
 
 #define Nprocess 5
-#define TimeSlice 3
+#define SliceTime 3
+#define IOdisco 5
+#define IOfita 10
+#define IOimpressora 15
 
 struct Queue *high;
 struct Queue *low;
@@ -20,18 +23,18 @@ void init() {
   high = createQueue(Nprocess);
   low = createQueue(Nprocess);
 
-  disco = createIOdevice(5, Nprocess);
-  fitaMagnetica = createIOdevice(10, Nprocess);
-  impressora = createIOdevice(15, Nprocess);
+  disco = createIOdevice(IOdisco, Nprocess);
+  fitaMagnetica = createIOdevice(IOfita, Nprocess);
+  impressora = createIOdevice(IOimpressora, Nprocess);
 
   for(int i = 0; i < Nprocess; i++) {
-    processes[i] = createProcess(5);
+    processes[i] = createProcess(i, 5);
   }
 
   //inicialmente todos os processos vão começar no tempo 0
   for(int i = 0; i < Nprocess; i++) {
     enqueue(low, i); //alterar para pegar o id do processo
-    printf("Processo %d foi inserido na fila de baixa prioridade\n", i);
+    printf("t = 0: Processo %d foi inserido na fila de baixa prioridade\n", i);
   }
 }
 
@@ -46,37 +49,53 @@ void checkIOdevices() {
 void runScheduler() {
   int processToExec = Nprocess;
   int currentTime = 0;
+  int remainingSliceTime = SliceTime;
+  int currentProcessId = -1;
+
   while(processToExec > 0) {
     checkNewProcess(); //verifica se algum novo processo foi iniciado
 
-    checkIOdevices(); //verifica andamento das operacoes de IO
+    if(currentProcessId == -1) {
+      if(!isEmpty(high)) {
+        currentProcessId = dequeue(high);
+      }
+      else {
+        currentProcessId = dequeue(low);
+      }
 
-    int currentProcessId = -1;
+      remainingSliceTime = SliceTime;
 
-    if(!isEmpty(high)) {
-      currentProcessId = dequeue(high);
+      if(currentProcessId >= 0) {
+        printf("t = %d: Processo %d retirado da fila e entra em execucao\n", currentTime, currentProcessId);
+      }
     }
-    else {
-      currentProcessId = dequeue(low);
-    }
+
+    currentTime = currentTime + 1;
 
     if(currentProcessId < 0) {
-      printf("CPU ociosa.");
+      printf("t = %d: CPU ociosa.", currentTime);
       continue;
     }
 
-    int remainingTime = exec(processes[currentProcessId], TimeSlice); //executa o processo
-    printf("Processo %d executou por %d unidades de tempo\n", currentProcessId, TimeSlice - remainingTime);
-    currentTime = currentTime + TimeSlice - remainingTime;
+    exec(processes[currentProcessId], 1); //executa o processo
 
     if(remaining(processes[currentProcessId]) == 0) {
+      printf("t = %d: O processo %d finalizou sua execucao\n", currentTime, currentProcessId);
       processToExec--;
-      printf("O processo %d finalizou sua execucao\n", currentProcessId);
+      currentProcessId = -1;
     }
     else {
-      enqueue(low, currentProcessId);
-      printf("Processo %d foi inserido na fila de baixa prioridade\n", currentProcessId);
+      if(remainingSliceTime - 1 == 0) {
+        enqueue(low, currentProcessId);
+        printf("t = %d: Processo %d foi inserido na fila de baixa prioridade\n", currentTime, currentProcessId);
+        currentProcessId = -1;
+      }
+      else {
+        remainingSliceTime = remainingSliceTime - 1;
+      }
     }
+
+    checkIOdevices(); //verifica andamento das operacoes de IO
   }
 }
 
