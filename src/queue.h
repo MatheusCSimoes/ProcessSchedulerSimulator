@@ -11,7 +11,7 @@ int isFull(struct Queue* queue);
 int isEmpty(struct Queue* queue);
 
 //Add an item to the queue
-void enqueue(struct Queue* queue, int item);
+int enqueue(struct Queue* queue, int item);
 
 //Remove the first item of the queue
 int dequeue(struct Queue* queue);

@@ -2,6 +2,7 @@
 
 #include "queue.h"
 #include "process.h"
+#include "iodevice.h"
 
 #define Nprocess 5
 #define TimeSlice 3
@@ -9,11 +10,19 @@
 struct Queue *high;
 struct Queue *low;
 
+struct IOdevice *disco;
+struct IOdevice *fitaMagnetica;
+struct IOdevice *impressora;
+
 struct Process *processes[Nprocess];
 
 void init() {
   high = createQueue(Nprocess);
   low = createQueue(Nprocess);
+
+  disco = createIOdevice(5, Nprocess);
+  fitaMagnetica = createIOdevice(10, Nprocess);
+  impressora = createIOdevice(15, Nprocess);
 
   for(int i = 0; i < Nprocess; i++) {
     processes[i] = createProcess(5);
@@ -26,17 +35,22 @@ void init() {
   }
 }
 
-void checkNewProcess()
-{
+void checkNewProcess() {
     //se novos processos iniciarem, coloca-los na fila
 }
 
-void runScheduler()
-{
+void checkIOdevices() {
+    //verifica andamento das operacoes de IO
+}
+
+void runScheduler() {
   int processToExec = Nprocess;
   int currentTime = 0;
   while(processToExec > 0) {
-    checkNewProcess();
+    checkNewProcess(); //verifica se algum novo processo foi iniciado
+
+    checkIOdevices(); //verifica andamento das operacoes de IO
+
     int currentProcessId = -1;
 
     if(!isEmpty(high)) {
@@ -47,10 +61,11 @@ void runScheduler()
     }
 
     if(currentProcessId < 0) {
-      break;
+      printf("CPU ociosa.");
+      continue;
     }
 
-    int remainingTime = exec(processes[currentProcessId], TimeSlice);
+    int remainingTime = exec(processes[currentProcessId], TimeSlice); //executa o processo
     printf("Processo %d executou por %d unidades de tempo\n", currentProcessId, TimeSlice - remainingTime);
     currentTime = currentTime + TimeSlice - remainingTime;
 
@@ -65,8 +80,7 @@ void runScheduler()
   }
 }
 
-int main()
-{
+int main() {
   init();
 
   runScheduler();

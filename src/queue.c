@@ -40,15 +40,16 @@ int isEmpty(struct Queue* queue)
 
 // Function to add an item to the queue.
 // It changes rear and size
-void enqueue(struct Queue* queue, int item)
+int enqueue(struct Queue* queue, int item)
 {
     if (isFull(queue))
-        return;
+        return 0; //false
     queue->rear = (queue->rear + 1)
                   % queue->capacity;
     queue->array[queue->rear] = item;
     queue->size = queue->size + 1;
     //printf("%d enqueued to queue\n", item);
+    return 1; //true
 }
 
 // Function to remove an item from queue.
