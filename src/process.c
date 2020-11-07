@@ -1,29 +1,25 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-//A structure to represent a process
-struct Process {
-  int id;
-  int timeExecuted;
-  int executionTime;
-};
+#include "process.h"
 
-struct Process* createProcess(int id, int execTime) {
-  struct Process* process = (struct Process*)malloc(sizeof(struct Process));
+Process* createProcess(int id, int execTime, int initTime) {
+  Process* process = (Process*)malloc(sizeof(Process));
 
   process->id = id;
   process->timeExecuted = 0;
   process->executionTime = execTime;
+  process->startTime = initTime;
 
   return process;
 }
 
-int remaining(struct Process* process) {
+int remaining(Process* process) {
   return (process->executionTime - process->timeExecuted);
 }
 
 //retorna o tempo não utilizado
-int exec(struct Process* process, int execTime) {
+int exec(Process* process, int execTime) {
   int remainingTime = remaining(process);
   if(execTime > remainingTime) {
       process->timeExecuted = process->executionTime;

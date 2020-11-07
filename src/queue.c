@@ -3,19 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//A structure to represent a queue
-struct Queue {
-    int front, rear, size;
-    unsigned capacity;
-    int* array;
-};
+#include "queue.h"
 
 // function to create a queue  of given capacity.
 // It initializes size of queue as 0
-struct Queue* createQueue(unsigned capacity)
+Queue* createQueue(unsigned capacity)
 {
-    struct Queue* queue = (struct Queue*)malloc(
-        sizeof(struct Queue));
+    Queue* queue = (Queue*)malloc(sizeof(Queue));
     queue->capacity = capacity;
     queue->front = queue->size = 0;
 
@@ -27,21 +21,18 @@ struct Queue* createQueue(unsigned capacity)
 }
 
 // Queue is full when size becomes equal to the capacity
-int isFull(struct Queue* queue)
-{
+int isFull(Queue* queue) {
     return (queue->size == queue->capacity);
 }
 
 // Queue is empty when size is 0
-int isEmpty(struct Queue* queue)
-{
+int isEmpty(Queue* queue) {
     return (queue->size == 0);
 }
 
 // Function to add an item to the queue.
 // It changes rear and size
-int enqueue(struct Queue* queue, int item)
-{
+int enqueue(Queue* queue, int item) {
     if (isFull(queue))
         return 0; //false
     queue->rear = (queue->rear + 1)
@@ -54,8 +45,7 @@ int enqueue(struct Queue* queue, int item)
 
 // Function to remove an item from queue.
 // It changes front and size
-int dequeue(struct Queue* queue)
-{
+int dequeue(Queue* queue) {
     if (isEmpty(queue))
         return -1;
     int item = queue->array[queue->front];
@@ -66,16 +56,14 @@ int dequeue(struct Queue* queue)
 }
 
 // Function to get front of queue
-int front(struct Queue* queue)
-{
+int front(Queue* queue) {
     if (isEmpty(queue))
         return -1;
     return queue->array[queue->front];
 }
 
 // Function to get rear of queue
-int rear(struct Queue* queue)
-{
+int rear(Queue* queue) {
     if (isEmpty(queue))
         return -1;
     return queue->array[queue->rear];

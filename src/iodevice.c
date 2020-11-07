@@ -2,16 +2,10 @@
 #include <stdlib.h>
 
 #include "queue.h"
+#include "iodevice.h"
 
-//A structure to represent an I/O device
-struct IOdevice {
-  struct Queue *processes; //fila de processos para realizar IO
-  int executed; //quanto já foi executado do processo no topo da fila
-  int operationTime; //tempo da operacao de IO
-};
-
-struct IOdevice* createIOdevice(unsigned operTime, int maxProcesses) {
-  struct IOdevice* device = (struct IOdevice*)malloc(sizeof(struct IOdevice));
+IOdevice* createIOdevice(unsigned operTime, int maxProcesses) {
+  IOdevice* device = (IOdevice*)malloc(sizeof(IOdevice));
 
   device->executed = 0;
   device->operationTime = operTime;
@@ -20,16 +14,16 @@ struct IOdevice* createIOdevice(unsigned operTime, int maxProcesses) {
   return device;
 }
 
-int enqueueIO(struct IOdevice* device, unsigned pid) {
+int enqueueIO(IOdevice* device, unsigned pid) {
   return (enqueue(device->processes, pid));
 }
 
-int remainingIO(struct IOdevice* device) {
+int remainingIO(IOdevice* device) {
   return (device->operationTime - device->executed);
 }
 
 //retorna o pid do processo caso tenha terminado a exec e -1 caso contrario
-int execIO(struct IOdevice* device, int execTime) { //execTime = 1 para o simulador
+int execIO(IOdevice* device, int execTime) { //execTime = 1 para o simulador
   if(isEmpty(device->processes)) return -1;
 
   int remainingTime = remainingIO(device);

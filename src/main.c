@@ -10,14 +10,14 @@
 #define IOfita 10
 #define IOimpressora 15
 
-struct Queue *high;
-struct Queue *low;
+Queue *high;
+Queue *low;
 
-struct IOdevice *disco;
-struct IOdevice *fitaMagnetica;
-struct IOdevice *impressora;
+IOdevice *disco;
+IOdevice *fitaMagnetica;
+IOdevice *impressora;
 
-struct Process *processes[Nprocess];
+Process *processes[Nprocess];
 
 void init() {
   high = createQueue(Nprocess);
@@ -28,18 +28,17 @@ void init() {
   impressora = createIOdevice(IOimpressora, Nprocess);
 
   for(int i = 0; i < Nprocess; i++) {
-    processes[i] = createProcess(i, 5);
-  }
-
-  //inicialmente todos os processos vão começar no tempo 0
-  for(int i = 0; i < Nprocess; i++) {
-    enqueue(low, i); //alterar para pegar o id do processo
-    printf("t = 0: Processo %d foi inserido na fila de baixa prioridade\n", i);
+    processes[i] = createProcess(i, 5, 10*i); //id, tempo de exec, tempo de chegada
   }
 }
 
-void checkNewProcess() {
-    //se novos processos iniciarem, coloca-los na fila
+void checkNewProcess(int currentTime) { //se novos processos iniciarem, coloca-los na fila
+  for(int i = 0; i < Nprocess; i++) {
+    if(processes[i]->startTime == currentTime) {
+      enqueue(high, i); //coloca "id" do processo na fila
+      printf("t = %d: Processo %d foi iniciado e inserido na fila de alta prioridade\n", currentTime, i);
+    }
+  }
 }
 
 void checkIOdevices() {
@@ -53,7 +52,7 @@ void runScheduler() {
   int currentProcessId = -1;
 
   while(processToExec > 0) {
-    checkNewProcess(); //verifica se algum novo processo foi iniciado
+    checkNewProcess(currentTime); //verifica se algum novo processo foi iniciado
 
     if(currentProcessId == -1) {
       if(!isEmpty(high)) {
@@ -73,7 +72,7 @@ void runScheduler() {
     currentTime = currentTime + 1;
 
     if(currentProcessId < 0) {
-      printf("t = %d: CPU ociosa.", currentTime);
+      printf("t = %d: CPU ociosa.\n", currentTime);
       continue;
     }
 
