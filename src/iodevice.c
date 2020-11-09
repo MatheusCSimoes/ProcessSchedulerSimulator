@@ -28,7 +28,7 @@ int execIO(IOdevice* device, int execTime) { //execTime = 1 para o simulador
 
   int remainingTime = remainingIO(device);
 
-  if(execTime >= remainingTime) {
+  if(execTime > remainingTime) {
       device->executed = 0; //terminou a operacao e esta pronto para comecar uma nova
       return (dequeue(device->processes));
   }

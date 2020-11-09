@@ -18,7 +18,7 @@ int remaining(Process* process) {
   return (process->executionTime - process->timeExecuted);
 }
 
-//retorna o tempo nÃ£o utilizado
+//retorna o tempo não utilizado
 int exec(Process* process, int execTime) {
   int remainingTime = remaining(process);
   if(execTime > remainingTime) {

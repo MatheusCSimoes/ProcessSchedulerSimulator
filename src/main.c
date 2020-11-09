@@ -18,7 +18,7 @@ IOdevice *disco;
 IOdevice *fitaMagnetica;
 IOdevice *impressora;
 
-Process *processes[Nprocess];
+Process *processes[Nprocess+1];
 
 int currentTime = 0;
 int remainingSliceTime = SliceTime;
@@ -33,20 +33,20 @@ void init() {
   impressora = createIOdevice(IOimpressora, Nprocess);
 
   printf("Criando processos:\n");
-  for(int i = 0; i < Nprocess; i++) {
+  for(int i = 1; i <= Nprocess; i++) {
     int execTime = (rand() % 20) + 5;
     int startTime = (rand() % 50);
     processes[i] = createProcess(i, execTime, startTime); //id, tempo de exec, tempo de chegada
-    printf("Processo %d: tempo de inicio = %d, tempo de execucao = %d.\n", i, startTime, execTime);
+    printf("Processo %d: Chegada no tempo = %d, tempo de serviço = %d.\n", i, startTime, execTime);
   }
   printf("\n");
 }
 
 void checkNewProcess(int currentTime) { //se novos processos iniciarem, coloca-los na fila
-  for(int i = 0; i < Nprocess; i++) {
+  for(int i = 1; i <= Nprocess; i++) {
     if(processes[i]->startTime == currentTime) {
-      enqueue(high, i); //coloca "id" do processo na fila
-      printf("t = %d: Processo %d foi iniciado e inserido na fila de alta prioridade\n", currentTime, i);
+      enqueue(high, processes[i]->id); //coloca "id" do processo na fila
+      printf("t = %d: Processo %d foi iniciado e inserido na fila de alta prioridade\n", currentTime, processes[i]->id);
     }
   }
 }
@@ -55,16 +55,20 @@ void getNewProcessId() {
   if(currentProcessId == -1) {
     if(!isEmpty(high)) {
       currentProcessId = dequeue(high);
+      if(currentProcessId >= 0) {
+        printf("t = %d: Processo %d retirado da fila de alta prioridade e entra em execucao\n", currentTime, currentProcessId);
+      }
     }
     else {
       currentProcessId = dequeue(low);
+      if(currentProcessId >= 0) {
+        printf("t = %d: Processo %d retirado da fila de baixa prioridade e entra em execucao\n", currentTime, currentProcessId);
+      }
     }
 
     remainingSliceTime = SliceTime;
 
-    if(currentProcessId >= 0) {
-      printf("t = %d: Processo %d retirado da fila e entra em execucao\n", currentTime, currentProcessId);
-    }
+    
   }
 }
 
@@ -89,7 +93,7 @@ void checkIOdevices() {
     }
 
     currentProcessId = -1;
-    getNewProcessId(); //pega novo processo para executar enquanto o atual Ã© passado para IO
+    //getNewProcessId(); //pega novo processo para executar enquanto o atual é passado para IO
   }
 }
 
@@ -103,38 +107,42 @@ void runScheduler() {
   while(processToExec > 0) {
     checkNewProcess(currentTime); //verifica se algum novo processo foi iniciado
 
-    getNewProcessId();
-
-    checkIOdevices(); //verifica andamento das operacoes de IO
-
-    currentTime = currentTime + 1;
+    //checkIOdevices(); //verifica andamento das operacoes de IO
 
     //execucao dos I/Os
     int pidDisco = execIO(disco, 1);
     if(pidDisco >= 0) {
-      printf("t = %d: Processo %d terminou I/O em disco e Ã© inserido na fila de baixa prioridade.\n", currentTime, pidDisco);
+      printf("t = %d: Processo %d terminou I/O em disco e é inserido na fila de baixa prioridade.\n", currentTime, pidDisco);
       enqueue(low, pidDisco);
     }
 
     int pidFita = execIO(fitaMagnetica, 1);
     if(pidFita >= 0) {
-      printf("t = %d: Processo %d terminou I/O em fita magnetica e Ã© inserido na fila de alta prioridade.\n", currentTime, pidFita);
+      printf("t = %d: Processo %d terminou I/O em fita magnetica e é inserido na fila de alta prioridade.\n", currentTime, pidFita);
       enqueue(high, pidFita);
     }
 
     int pidImpressora = execIO(impressora, 1);
     if(pidImpressora >= 0) {
-      printf("t = %d: Processo %d terminou I/O em impressora e Ã© inserido na fila de alta prioridade.\n", currentTime, pidImpressora);
+      printf("t = %d: Processo %d terminou I/O em impressora e é inserido na fila de alta prioridade.\n", currentTime, pidImpressora);
       enqueue(high, pidImpressora);
     }
 
-    if(currentProcessId < 0) { //verifica se tem algum processo para ser executado pela CPU
+    getNewProcessId();	
+	
+	if(currentProcessId < 0) { //verifica se tem algum processo para ser executado pela CPU
       printf("t = %d: CPU ociosa.\n", currentTime);
+      currentTime = currentTime + 1;
       continue;
     }
-
-    exec(processes[currentProcessId], 1); //executa o processo
-
+    else
+    	exec(processes[currentProcessId], 1); //executa o processo
+    	
+    currentTime = currentTime + 1;
+	
+    checkIOdevices(); //verifica andamento das operacoes de IO
+	
+	if(currentProcessId > -1)
     if(remaining(processes[currentProcessId]) == 0) { //verifica se o processo terminou execucao completa
       printf("t = %d: O processo %d finalizou sua execucao\n", currentTime, currentProcessId);
       processToExec--;
@@ -143,7 +151,7 @@ void runScheduler() {
     else {
       if(remainingSliceTime - 1 == 0) { //verifica se a fatia de tempo para o processo acabou
         enqueue(low, currentProcessId);
-        printf("t = %d: Processo %d foi inserido na fila de baixa prioridade\n", currentTime, currentProcessId);
+        printf("t = %d: Processo %d sofreu preempcao, inserido na fila de baixa prioridade\n", currentTime, currentProcessId);
         currentProcessId = -1;
       }
       else {
@@ -160,3 +168,4 @@ int main() {
 
   return 0;
 }
+
