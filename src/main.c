@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h> //apenas para utilizar rand() para gerar tempos dos processos
+#include <time.h> //para gerar o seed do rand()
+
 
 #include "queue.h"
 #include "process.h"
@@ -11,6 +13,8 @@
 #define IOfita 10 //tempo para I/O em fita magnetica
 #define IOimpressora 15 //tempo para I/O em impressora
 
+#define TAM_MAX 10000 //tempo para I/O em impressora
+
 Queue *high;
 Queue *low;
 
@@ -18,12 +22,19 @@ IOdevice *disco;
 IOdevice *fitaMagnetica;
 IOdevice *impressora;
 
+char tabela[Nprocess+1][TAM_MAX][5];
+
 Process *processes[Nprocess+1];
 
 int currentTime = 0;
 int remainingSliceTime = SliceTime;
 int currentProcessId = -1;
+int timeTabela = -1;
 
+int io[Nprocess];
+
+FILE *fp;
+   
 void init() {
   high = createQueue(Nprocess);
   low = createQueue(Nprocess);
@@ -65,6 +76,8 @@ void getNewProcessId() {
         printf("t = %d: Processo %d retirado da fila de baixa prioridade e entra em execucao\n", currentTime, currentProcessId);
       }
     }
+    if(currentProcessId > -1)
+    	sprintf(tabela[currentProcessId][timeTabela], "%i", currentProcessId);
 
     remainingSliceTime = SliceTime;
 
@@ -80,15 +93,21 @@ void checkIOdevices() {
     switch (IOtype) {
       case 0 /*impressora*/:
         enqueueIO(impressora, currentProcessId);
+        io[0] = currentProcessId;
         printf("t = %d: Processo %d inserido na fila de I/O para impressora.\n", currentTime, currentProcessId);
+        //sprintf(tabela[currentProcessId][timeTabela], "C");
         break;
       case 1 /*fita*/:
         enqueueIO(fitaMagnetica, currentProcessId);
+        io[1] = currentProcessId;
         printf("t = %d: Processo %d inserido na fila de I/O para fita magnetica.\n", currentTime, currentProcessId);
+        //sprintf(tabela[currentProcessId][timeTabela], "B");
         break;
       case 2 /*disco*/:
         enqueueIO(disco, currentProcessId);
+        io[2] = currentProcessId;
         printf("t = %d: Processo %d inserido na fila de I/O para disco.\n", currentTime, currentProcessId);
+        //sprintf(tabela[currentProcessId][timeTabela], "A");
         break;
     }
 
@@ -104,26 +123,41 @@ void runScheduler() {
   remainingSliceTime = SliceTime;
   currentProcessId = -1;
 
+  
   while(processToExec > 0) {
+  	timeTabela += 1;
+  	sprintf(tabela[0][timeTabela], "%d;", currentTime);
+  	for(int j = 1; j <= Nprocess; j++) {
+	    sprintf(tabela[j][timeTabela], ";", currentTime);
+	}  	
     checkNewProcess(currentTime); //verifica se algum novo processo foi iniciado
 
     //checkIOdevices(); //verifica andamento das operacoes de IO
 
     //execucao dos I/Os
     int pidDisco = execIO(disco, 1);
-    if(pidDisco >= 0) {
+    if(pidDisco == -2) {
+    	sprintf(tabela[io[2]][timeTabela], "A;");
+    }
+    else if(pidDisco >= 0) {
       printf("t = %d: Processo %d terminou I/O em disco e é inserido na fila de baixa prioridade.\n", currentTime, pidDisco);
       enqueue(low, pidDisco);
     }
 
     int pidFita = execIO(fitaMagnetica, 1);
-    if(pidFita >= 0) {
+    if(pidFita == -2) {
+    	sprintf(tabela[io[1]][timeTabela], "B;");
+    }
+    else if(pidFita >= 0) {
       printf("t = %d: Processo %d terminou I/O em fita magnetica e é inserido na fila de alta prioridade.\n", currentTime, pidFita);
       enqueue(high, pidFita);
     }
 
     int pidImpressora = execIO(impressora, 1);
-    if(pidImpressora >= 0) {
+    if(pidImpressora == -2) {
+    	sprintf(tabela[io[0]][timeTabela], "C;");
+    }
+    else if(pidImpressora >= 0) {
       printf("t = %d: Processo %d terminou I/O em impressora e é inserido na fila de alta prioridade.\n", currentTime, pidImpressora);
       enqueue(high, pidImpressora);
     }
@@ -135,8 +169,10 @@ void runScheduler() {
       currentTime = currentTime + 1;
       continue;
     }
-    else
+    else{
     	exec(processes[currentProcessId], 1); //executa o processo
+    	sprintf(tabela[currentProcessId][timeTabela], "%d;", currentProcessId);
+	}
     	
     currentTime = currentTime + 1;
 	
@@ -154,7 +190,7 @@ void runScheduler() {
         printf("t = %d: Processo %d sofreu preempcao, inserido na fila de baixa prioridade\n", currentTime, currentProcessId);
         currentProcessId = -1;
       }
-      else {
+      else {      	
         remainingSliceTime = remainingSliceTime - 1;
       }
     }
@@ -162,10 +198,21 @@ void runScheduler() {
 }
 
 int main() {
+  fp = fopen("tabela.csv", "w+");
+  srand(time(0)); 
   init();
 
   runScheduler();
 
+  for(int i = 0; i <= Nprocess; i++) {
+    for(int j = 0; j <= timeTabela; j++) {
+	    printf("%s", tabela[i][j]);
+	    fprintf(fp, tabela[i][j]);
+	}
+	printf("\n");
+	fprintf(fp, "\n");
+  }
+  fclose(fp);
   return 0;
 }
 
