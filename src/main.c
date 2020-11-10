@@ -125,7 +125,7 @@ void runScheduler() {
   	timeTabela += 1;
   	sprintf(tabela[0][timeTabela], "%d;", currentTime);
   	for(int j = 1; j <= Nprocess; j++) {
-	    sprintf(tabela[j][timeTabela], ";", currentTime);
+	    sprintf(tabela[j][timeTabela], ";");
 	}
     checkNewProcess(currentTime); //verifica se algum novo processo foi iniciado
 
@@ -205,7 +205,7 @@ int main() {
   for(int i = 0; i <= Nprocess; i++) {
     for(int j = 0; j <= timeTabela; j++) {
 	    //printf("%s", tabela[i][j]);
-	    fprintf(fp, tabela[i][j]);
+	    fprintf(fp, "%s", tabela[i][j]);
 	}
 	//printf("\n");
 	fprintf(fp, "\n");
