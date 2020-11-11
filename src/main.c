@@ -199,9 +199,11 @@ int main() {
   //printando tabela para visualizacao da execucao dos processos na "CPU"
   for(int i = 0; i <= Nprocess; i++) {
     for(int j = 0; j <= timeTabela; j++) {
-      fprintf(fp, "%s", tabela[i][j]);
-    }
-    fprintf(fp, "\n");
+	    //printf("%s", tabela[i][j]);
+	    fprintf(fp, "%s", tabela[i][j]);
+	}
+	//printf("\n");
+	fprintf(fp, "\n");
   }
   fclose(fp);
 
