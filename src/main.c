@@ -92,24 +92,20 @@ void checkIOdevices() {
         enqueueIO(impressora, currentProcessId);
         io[0] = currentProcessId;
         printf("t = %d: Processo %d inserido na fila de I/O para impressora.\n", currentTime, currentProcessId);
-        //sprintf(tabela[currentProcessId][timeTabela], "C");
         break;
       case 1 /*fita*/:
         enqueueIO(fitaMagnetica, currentProcessId);
         io[1] = currentProcessId;
         printf("t = %d: Processo %d inserido na fila de I/O para fita magnetica.\n", currentTime, currentProcessId);
-        //sprintf(tabela[currentProcessId][timeTabela], "B");
         break;
       case 2 /*disco*/:
         enqueueIO(disco, currentProcessId);
         io[2] = currentProcessId;
         printf("t = %d: Processo %d inserido na fila de I/O para disco.\n", currentTime, currentProcessId);
-        //sprintf(tabela[currentProcessId][timeTabela], "A");
         break;
     }
 
     currentProcessId = -1;
-    //getNewProcessId(); //pega novo processo para executar enquanto o atual e passado para IO
   }
 }
 
@@ -128,8 +124,6 @@ void runScheduler() {
 	    sprintf(tabela[j][timeTabela], ";");
 	}
     checkNewProcess(currentTime); //verifica se algum novo processo foi iniciado
-
-    //checkIOdevices(); //verifica andamento das operacoes de IO
 
     //execucao dos I/Os
     int pidDisco = execIO(disco, 1);
@@ -202,14 +196,14 @@ int main() {
 
   runScheduler();
 
+  //printando tabela para visualizacao da execucao dos processos na "CPU"
   for(int i = 0; i <= Nprocess; i++) {
     for(int j = 0; j <= timeTabela; j++) {
-	    //printf("%s", tabela[i][j]);
-	    fprintf(fp, "%s", tabela[i][j]);
-	}
-	//printf("\n");
-	fprintf(fp, "\n");
+      fprintf(fp, "%s", tabela[i][j]);
+    }
+    fprintf(fp, "\n");
   }
   fclose(fp);
+
   return 0;
 }
