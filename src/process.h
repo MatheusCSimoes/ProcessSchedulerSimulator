@@ -7,6 +7,7 @@ typedef struct _Process {
   int startTime; //apenas para agendar o inicio na simulacao
   int timeExecuted;
   int executionTime;
+  int endTime;  //apenas para guardar o fim da simulação e calcular o turnaround
 } Process;
 
 Process* createProcess(int id, int execTime, int initTime);

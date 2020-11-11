@@ -170,8 +170,9 @@ void runScheduler() {
   	if(currentProcessId > -1) {
       if(remaining(processes[currentProcessId]) == 0) { //verifica se o processo terminou execucao completa
         printf("t = %d: O processo %d finalizou sua execucao.\n", currentTime, currentProcessId);
+        processes[currentProcessId]->endTime = currentTime;
         processToExec--;
-        currentProcessId = -1;
+        currentProcessId = -1;        
       }
       else {
         if(remainingSliceTime - 1 == 0) { //verifica se a fatia de tempo para o processo acabou
@@ -204,5 +205,12 @@ int main() {
 	fprintf(fp, "\n");
   }
   fclose(fp);
+  for(int i = 1; i <= Nprocess; i++) {
+  	Process* p = processes[i];
+  	int espera = p->endTime-p->executionTime;
+  	int turnaround = p->endTime-p->startTime;
+  	double desempenho = (double)turnaround/(double)p->executionTime;
+  	printf("P%i\nChegada:%i\nTempo de Servico:%i\nTempo de espera:%i\nTurnaround(Tq):%i\nDesempenho(Tq/Ts):%lf\n\n",p->id,p->startTime,p->executionTime,espera,turnaround,desempenho);
+  }
   return 0;
 }

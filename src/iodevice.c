@@ -24,7 +24,7 @@ int remainingIO(IOdevice* device) {
 
 int currentProcess(IOdevice* device) {
   return (front(device->processes));
-}
+}	
 
 //retorna o pid do processo caso tenha terminado a exec e -1 caso contrario
 int execIO(IOdevice* device, int execTime) { //execTime = 1 para o simulador
