@@ -12,5 +12,6 @@ IOdevice* createIOdevice(unsigned execTime, int maxProcesses);
 int enqueueIO(IOdevice* device, unsigned pid);
 int remainingIO(IOdevice* device);
 int execIO(IOdevice* device, int execTime);
+int currentProcess(IOdevice* device);
 
-#endif
+#endif	

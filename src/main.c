@@ -30,8 +30,6 @@ int remainingSliceTime = SliceTime;
 int currentProcessId = -1;
 int timeTabela = -1;
 
-int io[Nprocess];
-
 FILE *fp;
 
 void init() {
@@ -90,17 +88,17 @@ void checkIOdevices() {
     switch (IOtype) {
       case 0 /*impressora*/:
         enqueueIO(impressora, currentProcessId);
-        io[0] = currentProcessId;
+        //io[0] = currentProcessId;
         printf("t = %d: Processo %d inserido na fila de I/O para impressora.\n", currentTime, currentProcessId);
         break;
       case 1 /*fita*/:
         enqueueIO(fitaMagnetica, currentProcessId);
-        io[1] = currentProcessId;
+        //io[1] = currentProcessId;
         printf("t = %d: Processo %d inserido na fila de I/O para fita magnetica.\n", currentTime, currentProcessId);
         break;
       case 2 /*disco*/:
         enqueueIO(disco, currentProcessId);
-        io[2] = currentProcessId;
+        //io[2] = currentProcessId;
         printf("t = %d: Processo %d inserido na fila de I/O para disco.\n", currentTime, currentProcessId);
         break;
     }
@@ -127,28 +125,28 @@ void runScheduler() {
 
     //execucao dos I/Os
     int pidDisco = execIO(disco, 1);
-    if(pidDisco == -2) {
-    	sprintf(tabela[io[2]][timeTabela], "A;");
-    }
-    else if(pidDisco >= 0) {
+	int idIO = currentProcess(disco);
+	if(idIO >= 0)
+		sprintf(tabela[idIO][timeTabela], "A;");
+    if(pidDisco >= 0) {
       printf("t = %d: Processo %d terminou I/O em disco e foi inserido na fila de baixa prioridade.\n", currentTime, pidDisco);
       enqueue(low, pidDisco);
     }
 
     int pidFita = execIO(fitaMagnetica, 1);
-    if(pidFita == -2) {
-    	sprintf(tabela[io[1]][timeTabela], "B;");
-    }
-    else if(pidFita >= 0) {
+    idIO = currentProcess(fitaMagnetica);
+	if(idIO >= 0)
+		sprintf(tabela[idIO][timeTabela], "B;");
+    if(pidFita >= 0) {
       printf("t = %d: Processo %d terminou I/O em fita magnetica e foi inserido na fila de alta prioridade.\n", currentTime, pidFita);
       enqueue(high, pidFita);
     }
 
     int pidImpressora = execIO(impressora, 1);
-    if(pidImpressora == -2) {
-    	sprintf(tabela[io[0]][timeTabela], "C;");
-    }
-    else if(pidImpressora >= 0) {
+    idIO = currentProcess(impressora);
+	if(idIO >= 0)
+		sprintf(tabela[idIO][timeTabela], "C;");
+    if(pidImpressora >= 0) {
       printf("t = %d: Processo %d terminou I/O em impressora e foi inserido na fila de alta prioridade.\n", currentTime, pidImpressora);
       enqueue(high, pidImpressora);
     }
@@ -206,6 +204,5 @@ int main() {
 	fprintf(fp, "\n");
   }
   fclose(fp);
-
   return 0;
 }
